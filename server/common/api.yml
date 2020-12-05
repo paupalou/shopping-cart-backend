@@ -1,0 +1,82 @@
+openapi: 3.0.1
+info:
+  title: cart-api
+  description: Cart API
+  version: 1.0.0
+servers:
+- url: /api/v1
+tags:
+- name: Products
+  description: Simple product endpoints
+- name: Specification
+  description: The swagger API specification
+paths:
+  /products:
+    get:
+      tags:
+      - Products
+      description: Fetch all products
+      responses:
+        200:
+          description: Returns all products
+          content: {}
+    post:
+      tags:
+      - Products
+      description: Create a new product
+      requestBody:
+        description: The schema of a new product
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductBody'
+        required: true
+      responses:
+        200:
+          description: Returns all products
+          content: {}
+  /products/{id}:
+    get:
+      tags:
+      - Products
+      parameters:
+      - name: id
+        in: path
+        description: The id of the product to retrieve
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: Return the product with the specified id
+          content: {}
+        404:
+          description: Product not found
+          content: {}
+  /spec:
+    get:
+      tags:
+      - Specification
+      responses:
+        200:
+          description: Return the API specification
+          content: {}
+components:
+  schemas:
+    ProductBody:
+      title: Product
+      required:
+      - name
+      - customerPrice
+      - cost
+      type: object
+      properties:
+        name:
+          type: string
+          example: Jam
+        customerPrice:
+          type: number
+          example: 1299
+        cost:
+          type: number
+          example: 1099
