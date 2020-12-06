@@ -53,6 +53,26 @@ paths:
         404:
           description: Product not found
           content: {}
+  /cart:
+    post:
+      tags:
+      - Cart
+      description: Create a new cart
+      requestBody:
+        description: The schema of a new cart
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CartBody'
+        required: true
+      responses:
+        201:
+          description: Returns all items in cart and total
+          content:
+            application/json:
+              schema:
+                $ref: '#components/schemas/Cart'
+
   /spec:
     get:
       tags:
@@ -80,3 +100,54 @@ components:
         cost:
           type: number
           example: 1099
+
+    CartProduct:
+      title: CartProduct
+      required:
+      - id
+      - quantity
+      type: object
+      properties:
+        id:
+          type: number
+          example: 1
+        quantity:
+          type: number
+          example: 4
+
+    CartBody:
+      type: array
+      items:
+        $ref: '#/components/schemas/CartProduct'
+
+    CartItem:
+      title: CartItem
+      required:
+      - id
+      - quantity
+      type: object
+      properties:
+        name:
+          type: string
+          example: Jam
+        quantity:
+          type: number
+          example: 4
+        price:
+          type: string
+          example: $10.99
+        total:
+          type: number
+          example: $43.96
+
+    Cart:
+      title: Cart
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItem'
+        total:
+          type: number
+          example: 125.72
