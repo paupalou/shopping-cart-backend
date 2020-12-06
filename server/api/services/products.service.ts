@@ -1,7 +1,7 @@
 import L from '../../common/logger';
 
 let id = 1;
-interface Product {
+export interface Product {
   id: number;
   name: string;
   customerPrice: number;
