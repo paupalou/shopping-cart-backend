@@ -1,5 +1,7 @@
 import L from '../../common/logger';
 import ProductsService from './products.service';
+import OffersService from './offers.service';
+import { priceFormatter } from '../../common/helpers';
 
 import type { Product } from './products.service';
 
@@ -9,45 +11,61 @@ export interface ItemAddition {
 }
 
 interface Item {
+  id: number;
   name: string;
   quantity: number;
   price: string;
   total: string;
+  baseTotal: number;
+  basePrice: number;
+  baseTotalBeforeOffers?: number;
+  totalBeforeOffers?: string;
+  offer?: {
+    name: string;
+    description: string;
+  };
 }
 
-interface Cart {
+export interface Cart {
   items: Item[];
-  total: number;
+  baseTotal: number;
+  total: string;
+  totalBeforeOffers?: string;
 }
 
 export class CartService {
-  #priceFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  });
-
   create(items: ItemAddition[]): Promise<Cart> {
     L.info(`create cart with ${items.length} products`);
-    const cart: Cart = { items: [], total: 0 };
+    const cart: Cart = {
+      items: [],
+      baseTotal: 0,
+      total: priceFormatter.format(0),
+    };
+
     const productResponses: Promise<Product>[] = items.map((item) =>
       ProductsService.byId(item.id).then((product) => {
         const itemTotal = item.quantity * product.customerPrice;
         const cartItem: Item = {
+          id: item.id,
           name: product.name,
           quantity: item.quantity,
-          price: this.#priceFormatter.format(product.customerPrice),
-          total: this.#priceFormatter.format(itemTotal),
+          basePrice: product.customerPrice,
+          baseTotal: itemTotal,
+          price: priceFormatter.format(product.customerPrice),
+          total: priceFormatter.format(itemTotal),
         };
 
         cart.items.push(cartItem);
-        cart.total += itemTotal;
+        cart.baseTotal += itemTotal;
+        cart.total = priceFormatter.format(cart.baseTotal);
 
         return product;
       })
     );
 
-    return Promise.all(productResponses).then((_) => cart);
+    return Promise.all(productResponses).then((_) =>
+      OffersService.applyOffers(cart)
+    );
   }
 }
 
