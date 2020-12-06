@@ -63,7 +63,7 @@ export class CartService {
       })
     );
 
-    return Promise.all(productResponses).then((_) =>
+    return Promise.all(productResponses).then(() =>
       OffersService.applyOffers(cart)
     );
   }
