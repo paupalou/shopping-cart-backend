@@ -18,23 +18,24 @@ interface Item {
   total: string;
   baseTotal: number;
   basePrice: number;
-  baseTotalBeforeOffers?: number;
-  totalBeforeOffers?: string;
-  offer?: {
+  baseTotalWithOffers?: number;
+  totalWithOffers?: string;
+  offers?: {
     name: string;
     description: string;
-  };
+  }[];
 }
 
 export interface Cart {
   items: Item[];
   baseTotal: number;
   total: string;
-  totalBeforeOffers?: string;
+  baseTotalWithOffers?: number;
+  totalWithOffers?: string;
 }
 
 export class CartService {
-  create(items: ItemAddition[]): Promise<Cart> {
+  create(items: ItemAddition[], isSunday = false): Promise<Cart> {
     L.info(`create cart with ${items.length} products`);
     const cart: Cart = {
       items: [],
@@ -64,7 +65,7 @@ export class CartService {
     );
 
     return Promise.all(productResponses).then(() =>
-      OffersService.applyOffers(cart)
+      OffersService.applyOffers({ cart, isSunday })
     );
   }
 }
