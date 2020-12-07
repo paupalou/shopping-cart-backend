@@ -11,7 +11,7 @@ const OFFERS = {
       'Maximum 3 free soups per customer.',
   },
 
-  SUNDAYU_SOUP_SALE: {
+  SUNDAY_SOUP_SALE: {
     name: 'Sunday Soup Sale',
     description: 'Buy any can of soup on a Sunday and get 10% off.',
   },
@@ -27,7 +27,7 @@ const OFFERS = {
 
 interface Offer {
   id: number;
-  apply: (cart: Cart) => Cart;
+  apply: (cart: Cart, isSunday?: boolean) => Cart;
 }
 
 const businessOffers: Offer[] = [
@@ -64,10 +64,17 @@ const businessOffers: Offer[] = [
               return {
                 ...item,
                 quantity,
-                offer: OFFERS.SOUP_AND_BREAD_BOGOF,
-                baseTotalBeforeOffers: quantity * item.basePrice,
-                totalBeforeOffers: priceFormatter.format(
-                  quantity * item.basePrice
+                offers: [
+                  ...new Set([
+                    ...(item.offers ?? []),
+                    OFFERS.SOUP_AND_BREAD_BOGOF,
+                  ]),
+                ],
+                baseTotal: quantity * item.basePrice,
+                total: priceFormatter.format(quantity * item.basePrice),
+                baseTotalWithOffers: item.quantity * item.basePrice,
+                totalWithOffers: priceFormatter.format(
+                  item.quantity * item.basePrice
                 ),
               };
             }
@@ -78,21 +85,72 @@ const businessOffers: Offer[] = [
       };
     },
   },
+  {
+    id: 2,
+    apply: (cart, isSunday): Cart => {
+      const SOUP = 1;
+      const DISCOUNT = 1 / 10;
+
+      // I comment this line of code to test this offer
+      // const isSunday = new Date().getDay() === 0
+      if (!isSunday) return cart;
+
+      return {
+        ...cart,
+        items: cart.items.map((item) => {
+          if (item.id === SOUP) {
+            const baseTotal = item.baseTotalWithOffers ?? item.baseTotal;
+            const baseTotalWithOffers = baseTotal - baseTotal * DISCOUNT;
+            return {
+              ...item,
+              baseTotalWithOffers,
+              totalWithOffers: priceFormatter.format(baseTotalWithOffers),
+              offers: [
+                ...new Set([...(item.offers ?? []), OFFERS.SUNDAY_SOUP_SALE]),
+              ],
+            };
+          }
+
+          return item;
+        }),
+      };
+    },
+  },
 ];
 
-export class OffersService {
-  applyOffers(cart: Cart, offers: Offer[] = businessOffers): Cart {
-    let cartWithOffersApplied = cart;
-    offers.forEach((offer) => (cartWithOffersApplied = offer.apply(cart)));
+interface ApplyOffersParams {
+  cart: Cart;
+  offers?: Offer[];
+  isSunday?: boolean;
+}
 
-    if (cartWithOffersApplied.items.some((item) => item.offer)) {
+export class OffersService {
+  applyOffers({
+    cart,
+    offers = businessOffers,
+    isSunday = false,
+  }: ApplyOffersParams): Cart {
+    let cartWithOffersApplied = cart;
+    offers.forEach(
+      (offer) =>
+        (cartWithOffersApplied = offer.apply(cartWithOffersApplied, isSunday))
+    );
+
+    if (cartWithOffersApplied.items.some((item) => item.offers?.length > 0)) {
+      const baseTotal = cartWithOffersApplied.items
+        .map((item) => item.baseTotal)
+        .reduce((acc, curr) => acc + curr);
+
+      const baseTotalWithOffers = cartWithOffersApplied.items
+        .map((item) => item.baseTotalWithOffers ?? item.baseTotal)
+        .reduce((acc, curr) => acc + curr);
+
       return {
         ...cartWithOffersApplied,
-        totalBeforeOffers: priceFormatter.format(
-          cartWithOffersApplied.items
-            .map((item) => item.baseTotalBeforeOffers ?? item.baseTotal)
-            .reduce((acc, curr) => acc + curr)
-        ),
+        baseTotal,
+        total: priceFormatter.format(baseTotal),
+        baseTotalWithOffers,
+        totalWithOffers: priceFormatter.format(baseTotalWithOffers),
       };
     }
 
