@@ -59,7 +59,9 @@ const businessOffers: Offer[] = [
           ...cart.items.map((item) => {
             if (item.id === SOUP) {
               const quantity = item.quantity + freeSoups;
-              L.info(`Applying ${freeSoups} Soup And Bread BOGOF offers`);
+              L.info(
+                `Applying ${freeSoups} ${OFFERS.SOUP_AND_BREAD_BOGOF.name} offers`
+              );
 
               return {
                 ...item,
@@ -95,6 +97,7 @@ const businessOffers: Offer[] = [
       // const isSunday = new Date().getDay() === 0
       if (!isSunday) return cart;
 
+      L.info(`Applying ${OFFERS.SUNDAY_SOUP_SALE.name} 10% discount`);
       return {
         ...cart,
         items: cart.items.map((item) => {
