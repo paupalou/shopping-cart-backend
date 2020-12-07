@@ -6,7 +6,8 @@ import type { ItemAddition } from '../../services/cart.service';
 export class Controller {
   create(req: Request, res: Response): void {
     const items: ItemAddition[] = req.body;
-    CartService.create(items).then((cart) => res.json(cart));
+    const { isSunday } = req.query;
+    CartService.create(items, Boolean(isSunday)).then((cart) => res.json(cart));
   }
 }
 
