@@ -58,6 +58,12 @@ paths:
       tags:
       - Cart
       description: Create a new cart
+      parameters:
+        - in: query
+          description: Flag to force we are on sunday
+          name: isSunday
+          schema:
+            type: boolean
       requestBody:
         description: The schema of a new cart
         content:
