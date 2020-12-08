@@ -45,11 +45,13 @@ const businessOffers: Offer[] = [
       if (!applyable) return cart;
 
       const freeSoups = Math.min(
-        cart.items.reduce(
-          (acc, curr) =>
-            acc > 0 ? Math.min(curr.quantity, acc) : curr.quantity,
-          0
-        ),
+        cart.items
+          .filter((item) => [SOUP, BREAD].includes(item.id))
+          .reduce(
+            (acc, curr) =>
+              acc > 0 ? Math.min(curr.quantity, acc) : curr.quantity,
+            0
+          ),
         MAX_ITEMS
       );
 
